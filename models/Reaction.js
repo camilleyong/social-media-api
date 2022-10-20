@@ -1,3 +1,4 @@
+const moment = require('moment');
 const { Schema, model, Types } = require('mongoose');
 
 // Schema to create Student model
@@ -19,7 +20,10 @@ const reactionSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now,
-      get: (timestamp) => dateFormat(timestamp),
+      get: (date) => {
+        const Date = moment(date).format("MMM DD, YYYY [at] hh:mma")
+        return Date
+      },
     },
   },
   {

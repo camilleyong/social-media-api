@@ -1,27 +1,5 @@
 const { ObjectId } = require('mongoose').Types;
-const { User, Thought } = require('../models');
-
-// Aggregate function to get the number of users overall
-const headCount = async () =>
-  User.aggregate()
-    .count('userCount')
-    .then((numberOfUsers) => numberOfUsers);
-
-// Aggregate function for getting the overall grade using $avg
-const grade = async (userId) =>
-  User.aggregate([
-    // only include the given user by using $match
-    { $match: { _id: ObjectId(userId) } },
-    {
-      $unwind: '$assignments',
-    },
-    {
-      $group: {
-        _id: ObjectId(userId),
-        overallGrade: { $avg: '$assignments.score' },
-      },
-    },
-  ]);
+const { User, Thought} = require('../models');
 
 module.exports = {
   // Get all users
@@ -30,7 +8,6 @@ module.exports = {
       .then(async (users) => {
         const userObj = {
           users,
-          headCount: await headCount(),
         };
         return res.json(userObj);
       })
@@ -57,7 +34,7 @@ module.exports = {
       });
   },
   // create a new user
-  createuser(req, res) {
+  createUser(req, res) {
     User.create(req.body)
       .then((user) => res.json(user))
       .catch((err) => res.status(500).json(err));
@@ -87,13 +64,27 @@ module.exports = {
       });
   },
 
-  // Add an assignment to a user
-  addAssignment(req, res) {
-    console.log('You are adding an assignment');
+  updateUSer(req, res) {
+    User.findOneAndUpdate(
+      { _id: req.params.userId },
+      { $set: req.body },
+      { runValidators: true, new: true }
+    )
+      .then((user) =>
+        !thought
+          ? res.status(404).json({ message: 'No thought with this id!' })
+          : res.json(user)
+      )
+      .catch((err) => res.status(500).json(err));
+  },
+
+  // Add an reaction to a user
+  addFriend(req, res) {
+    console.log('You are adding an reaction');
     console.log(req.body);
     User.findOneAndUpdate(
       { _id: req.params.userId },
-      { $addToSet: { assignments: req.body } },
+      { $addToSet: { friends: req.body } },
       { runValidators: true, new: true }
     )
       .then((user) =>
@@ -105,11 +96,11 @@ module.exports = {
       )
       .catch((err) => res.status(500).json(err));
   },
-  // Remove assignment from a user
-  removeAssignment(req, res) {
+  // Remove reaction from a user
+  removeFriend(req, res) {
     User.findOneAndUpdate(
       { _id: req.params.userId },
-      { $pull: { assignment: { assignmentId: req.params.assignmentId } } },
+      { $pull: { reaction: { reactionId: req.params.friendsId } } },
       { runValidators: true, new: true }
     )
       .then((user) =>
