@@ -4,6 +4,7 @@ const {
   getSingleUser,
   createUser,
   deleteUser,
+  updateUser,
   addReaction,
   removeReaction,
   addFriend,
